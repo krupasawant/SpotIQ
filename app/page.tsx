@@ -1,103 +1,157 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import { LocationForm } from "@/components/LocationForm";
+import { AREA_GROUPS } from "@/constants/data";
+import { AREA_BOUNDS } from "@/constants/areaBound";
+
+
+import { MapContainer, TileLayer, Rectangle, Popup, useMap } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import { useEffect } from "react";
+
+type FormValues = {
+  area: string;
+  cuisine: string;
+  audience: string[];
+  budget: string;
+};
+
+// === Zoom helper ===
+function FitBounds({ bounds }: { bounds: [[number, number], [number, number]] | null }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (bounds) {
+      map.flyToBounds(bounds, { padding: [50, 50], duration: 1.5 });
+    }
+  }, [bounds, map]);
+
+  return null;
+}
+
+export default function HomePage() {
+  const [selectedArea, setSelectedArea] = useState<string | null>(null);
+  const [results, setResults] = useState<{ name: string; score: number; insights?: string[] }[]>([]);
+  const [loadingSteps, setLoadingSteps] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (data: FormValues) => {
+    
+     setIsLoading(true);
+  setLoadingSteps(["📊 Calculating final score..."]);
+  const startTime = performance.now(); // Start timing
+  try {
+    // Call backend
+    const res = await fetch("/api/calculateScore", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    const { area, score, breakdown, insights } = await res.json();
+    const endTime = performance.now(); // End timing
+    console.log(`⏱️ Total scoring time: ${(endTime - startTime).toFixed(2)} ms`);
+    setResults([{ name: area, score, insights }]);
+    setSelectedArea(area);
+  } catch (err) {
+    console.error(err);
+    setLoadingSteps(prev => [...prev, "❌ Error calculating score"]);
+  } finally {
+    setIsLoading(false);
+  }
+
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <main className="min-h-screen px-6 py-10 bg-gray-50">
+      {/* === Header === */}
+      <h3 className="text-4xl md:text-5xl font-extrabold text-center mb-2 text-violet-700">
+        Best Restaurant Locations, Simplified
+      </h3>
+      <p className="text-center text-gray-600 mb-10 max-w-2xl mx-auto">
+        Discover the perfect spot for your restaurant using foot traffic, competition, and audience insights.
+      </p>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      <div className="flex flex-col md:flex-row gap-8 max-w-7xl mx-auto">
+        {/* === FORM + RESULTS === */}
+        <div className="md:w-1/3 rounded-xl border border-violet-300 p-6 bg-gradient-to-b from-white to-violet-50 shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <LocationForm onSubmit={handleSubmit} />
+
+                   {isLoading && (
+            <div className="mt-4 p-4 bg-gray-100 border border-gray-300 rounded-md shadow-sm">
+              <h3 className="font-semibold text-gray-700 mb-2">Analyzing location...</h3>
+              <ul className="space-y-1 text-sm text-gray-600">
+                {loadingSteps.map((step, idx) => (
+                  <li key={idx} className="flex items-center">
+                    <span className="animate-pulse mr-2">⏳</span> {step}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {results.length > 0 && results[0].insights && (
+            <div className="mt-4 p-4 rounded-lg bg-violet-50 border border-violet-200 shadow-sm">
+              <h3 className="text-lg font-semibold text-violet-800 mb-2">Insights</h3>
+              <p className="text-3xl font-bold text-violet-700 mb-2">
+                Score: {results[0].score.toFixed(1)} / 10
+              </p>
+              <div className="h-2 w-full bg-gray-200 rounded-full mb-2">
+                <div
+                  className="h-2 bg-violet-600 rounded-full"
+                  style={{ width: `${(results[0].score / 10) * 100}%` }}
+                ></div>
+              </div>
+              <ul className="list-disc ml-5 text-sm text-gray-700">
+                {results[0].insights.map((tip: string, idx: number) => (
+                  <li key={idx}>{tip}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        {/* === MAP === */}
+        <div className="md:w-2/3 h-[80vh] border rounded-xl shadow-lg p-2 bg-white">
+          <h2 className="text-xl font-semibold text-center mb-2 text-gray-700">
+            Map Preview
+          </h2>
+          <MapContainer center={[40.75, -73.98]} zoom={12} className="w-full h-full rounded-lg">
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution="&copy; OpenStreetMap contributors"
+            />
+
+            {AREA_GROUPS.flatMap(group => group.areas).map(areaName => {
+              const bounds = AREA_BOUNDS[areaName];
+              if (!bounds) return null;
+
+              const isSelected = areaName === selectedArea;
+              const hasResults = results.length > 0;
+
+              return (
+                <Rectangle
+                  key={areaName}
+                  bounds={bounds}
+                  pathOptions={{
+                    color: isSelected ? "green" : "blue",
+                    weight: isSelected ? 3 : 1,
+                    fillOpacity: isSelected ? 0.3 :hasResults ? 0.05 : 0.1,
+                  }}
+                >
+                  <Popup>
+                    {areaName} {isSelected && "(Selected)"}
+                  </Popup>
+                </Rectangle>
+              );
+            })}
+
+            {/* Smooth zoom to selected area */}
+            <FitBounds bounds={selectedArea ? AREA_BOUNDS[selectedArea] : null} />
+          </MapContainer>
+        </div>
+      </div>
+    </main>
   );
 }
