@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## 📍 SpotIQ – Restaurant Location Intelligence
 
-## Getting Started
+SpotIQ is a full-stack geospatial intelligence tool that helps food entrepreneurs and restaurant owners identify the best areas to open a new restaurant in New York City. It analyzes foot traffic, competition, and proximity to points of interest using open-source APIs.
 
-First, run the development server:
+## 🚀 Project Overview
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Originally intended as a Python data analysis project, SpotIQ evolved into an interactive Next.js application offering real-time location scoring, map visualizations, and actionable business insights.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 📍 Key Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Interactive area selection from popular NYC neighborhoods.
+- Live scoring based on:
+  -  Foot traffic (NYC Open Data pedestrian counts)
+  -  Proximity to offices, institutions, and transit
+  -  Direct and indirect restaurant competition
+- Real-time map highlighting for the best zones
+- Insight breakdown explaining the score
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🛠️ Tech Stack
 
-## Learn More
+- **Frontend**: Next.js 14 (App Router), React, TailwindCSS, Leaflet.js
+- **UI Kit**: `shadcn/ui` components
+- **APIs & Data**:
+  - OpenStreetMap & Overpass API for POIs
+  - NYC Open Data (pedestrian foot traffic)
+- **Scoring Engine**: Custom logic using POI density, pedestrian normalization, and weighted factors
+- **Hosting**: Vercel
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🔮 Future Plans
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Add visualizations: bar graphs, heatmaps, score comparisons
+- Integrate area-level demographics (e.g. residents vs. professionals)
+- Add ROI estimators or cost predictors per area
+- Expand to support other cities (Mumbai, Chicago, etc.)
+- Improve performance and Overpass API latency
+- Reintroduce Python-based clustering and ML scoring as an enhancement layer
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
