@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getLocationScore } from "../../../lib/fetchAreaData"
 import { AREA_BOUNDS } from "../../../constants/areaBound";
 import { fetchPedestrianCountsPerArea } from "@/lib/fetchPedestrianCounts";
-
-
 import { generateInsights } from "@/utils/generateInsights";
 
 

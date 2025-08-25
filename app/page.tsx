@@ -2,17 +2,17 @@
 
 import { useState } from "react";
 import { LocationForm } from "@/components/LocationForm";
-import { AREA_GROUPS } from "@/constants/data";
-import { AREA_BOUNDS } from "@/constants/areaBound";
 import {
-  MapContainer,
-  TileLayer,
-  Rectangle,
-  Popup,
   useMap,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { useEffect } from "react";
+import dynamic from "next/dynamic";
+
+// Dynamically import MapPreview to disable SSR
+const MapPreview = dynamic(() => import("@/components/MapPreview"), {
+  ssr: false,
+});
 import { Playfair_Display } from "next/font/google";
 
 const playfair = Playfair_Display({
@@ -149,47 +149,7 @@ export default function HomePage() {
           <h2 className="text-xl font-semibold text-center mb-2 text-gray-700">
             Map Preview
           </h2>
-
-          <MapContainer
-            center={[40.75, -73.98]}
-            zoom={12}
-            className="w-full flex-1 rounded-lg"
-          >
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution="&copy; OpenStreetMap contributors"
-            />
-
-            {AREA_GROUPS.flatMap((group) => group.areas).map((areaName) => {
-              const bounds = AREA_BOUNDS[areaName];
-              if (!bounds) return null;
-
-              const isSelected = areaName === selectedArea;
-              const hasResults = results.length > 0;
-
-              return (
-                <Rectangle
-                  key={areaName}
-                  bounds={bounds}
-                  pathOptions={{
-                    color: isSelected ? "green" : "blue",
-                    weight: isSelected ? 3 : 1,
-                    fillOpacity: isSelected ? 0.3 : hasResults ? 0.05 : 0.1,
-                  }}
-                >
-                  <Popup>
-                    {areaName} {isSelected && "(Selected)"}
-                  </Popup>
-                </Rectangle>
-              );
-            })}
-
-            {/* Smooth zoom to selected area */}
-            <FitBounds
-              bounds={selectedArea ? AREA_BOUNDS[selectedArea] : null}
-            />
-          </MapContainer>
-        </div>
+          <MapPreview selectedArea={selectedArea} results={results} />
       </div>
     </main>
   );
