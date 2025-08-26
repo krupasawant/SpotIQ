@@ -2,14 +2,10 @@
 
 import { useState } from "react";
 import { LocationForm } from "@/components/LocationForm";
-import {
-  useMap,
-} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { useEffect } from "react";
 import dynamic from "next/dynamic";
 
-// Dynamically import MapPreview to disable SSR
+
 const MapPreview = dynamic(() => import("@/components/MapPreview"), {
   ssr: false,
 });
@@ -28,22 +24,7 @@ type FormValues = {
   budget: string;
 };
 
-// === Zoom helper ===
-function FitBounds({
-  bounds,
-}: {
-  bounds: [[number, number], [number, number]] | null;
-}) {
-  const map = useMap();
 
-  useEffect(() => {
-    if (bounds) {
-      map.flyToBounds(bounds, { padding: [50, 50], duration: 1.5 });
-    }
-  }, [bounds, map]);
-
-  return null;
-}
 
 export default function HomePage() {
   const [selectedArea, setSelectedArea] = useState<string | null>(null);
@@ -150,6 +131,7 @@ export default function HomePage() {
             Map Preview
           </h2>
           <MapPreview selectedArea={selectedArea} results={results} />
+          </div>
       </div>
     </main>
   );
